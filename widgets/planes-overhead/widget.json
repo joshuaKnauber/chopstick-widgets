@@ -1,0 +1,427 @@
+{
+  "id": "planes-overhead", "icon": "icon-red-airplane.png",
+  "name": "Planes Overhead",
+  "description": "Live planes around your location from ADS-B data, with where each flight is coming from and going to, popping up when one is about to pass overhead.",
+  "author": "joshuaKnauber",
+  "version": "1.0.0",
+  "anytime": true,
+  "initial": "nearby",
+  "watch": [
+    {
+      "script": "sky.sh",
+      "every": 60,
+      "as": "sky"
+    }
+  ],
+  "triggers": [
+    {
+      "when": {
+        "sky.overhead": true
+      },
+      "open": "overhead"
+    }
+  ],
+  "states": {
+    "nearby": {
+      "compact": {
+        "leading": {
+          "symbol": "airplane"
+        },
+        "trailing": {
+          "text": "{{sky.count | –}}"
+        }
+      },
+      "expanded": {
+        "size": "regular",
+        "header": {
+          "symbol": "airplane",
+          "title": "Sky over {{sky.place | your location}}"
+        },
+        "blocks": [
+          {
+            "text": "{{sky.summary | Looking for planes…}}",
+            "style": "caption"
+          },
+          {
+            "list": {
+              "from": "sky.nearby",
+              "limit": 5,
+              "symbol": "airplane",
+              "title": "{{item.route}} · {{item.callsign}}",
+              "subtitle": "{{item.desc | Unknown type}} · {{item.alt}} · {{item.dist}}",
+              "do": [
+                {
+                  "open_url": "{{item.url}}"
+                }
+              ]
+            }
+          },
+          {
+            "row": [
+              {
+                "note": "Pings within {{sky.radius_km | 4}} km"
+              },
+              "spacer",
+              {
+                "button": {
+                  "symbol": "location",
+                  "label": "Use my location",
+                  "style": "plain",
+                  "do": [
+                    {
+                      "set": {
+                        "new_lat": "",
+                        "new_lon": "",
+                        "new_radius": ""
+                      }
+                    },
+                    {
+                      "run": "set_location.sh"
+                    },
+                    {
+                      "refresh": "sky"
+                    }
+                  ]
+                }
+              },
+              {
+                "button": {
+                  "symbol": "arrow.clockwise",
+                  "style": "plain",
+                  "do": [
+                    {
+                      "refresh": "sky"
+                    }
+                  ]
+                }
+              }
+            ],
+            "align": "center"
+          }
+        ]
+      }
+    },
+    "overhead": {
+      "task": true,
+      "open": true,
+      "dismiss_after": 30,
+      "compact": {
+        "leading": {
+          "symbol": "airplane",
+          "tint": "yellow"
+        },
+        "trailing": {
+          "text": "{{sky.plane.callsign | Overhead}}"
+        }
+      },
+      "expanded": {
+        "size": "regular",
+        "header": {
+          "symbol": "airplane",
+          "tint": "yellow",
+          "title": "{{sky.plane.when | Plane overhead}}"
+        },
+        "blocks": [
+          {
+            "row": [
+              {
+                "text": "{{sky.plane.route | Route unknown}}",
+                "style": "title"
+              },
+              {
+                "image": "plane-yellow.png",
+                "size": "small"
+              }
+            ],
+            "align": "center"
+          },
+          {
+            "progress": {
+              "value": "{{sky.plane.progress | 0.5}}",
+              "max": "1",
+              "label": "{{sky.plane.trip | Route not published}}",
+              "tint": "yellow"
+            }
+          },
+          {
+            "row": [
+              {
+                "note": "{{sky.plane.from_city | Origin unknown}}"
+              },
+              "spacer",
+              {
+                "note": "{{sky.plane.to_city | Destination unknown}}"
+              }
+            ]
+          },
+          {
+            "text": "{{sky.plane.callsign | Unknown flight}} · {{sky.plane.desc | Unknown type}}",
+            "style": "caption",
+            "lines": 1
+          },
+          {
+            "row": [
+              {
+                "stack": [
+                  {
+                    "note": "Altitude"
+                  },
+                  {
+                    "text": "{{sky.plane.alt | –}}"
+                  }
+                ]
+              },
+              "spacer",
+              {
+                "stack": [
+                  {
+                    "note": "Speed"
+                  },
+                  {
+                    "text": "{{sky.plane.speed | –}}"
+                  }
+                ]
+              },
+              "spacer",
+              {
+                "stack": [
+                  {
+                    "note": "Distance"
+                  },
+                  {
+                    "text": "{{sky.plane.dist | –}}"
+                  }
+                ]
+              },
+              "spacer",
+              {
+                "stack": [
+                  {
+                    "note": "Direction"
+                  },
+                  {
+                    "text": "{{sky.plane.heading | –}}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "row": [
+              {
+                "button": {
+                  "symbol": "safari",
+                  "label": "Flightradar24",
+                  "style": "filled",
+                  "do": [
+                    {
+                      "open_url": "{{sky.plane.url}}"
+                    }
+                  ]
+                }
+              },
+              {
+                "button": {
+                  "symbol": "list.bullet",
+                  "label": "All nearby",
+                  "style": "plain",
+                  "do": [
+                    {
+                      "go": "nearby"
+                    }
+                  ]
+                }
+              },
+              "spacer"
+            ]
+          }
+        ]
+      },
+      "keys": [
+        {
+          "key": "cmd+return",
+          "label": "Open",
+          "do": [
+            {
+              "open_url": "{{sky.plane.url}}"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "commands": {
+    "show": {
+      "description": "Show the planes around you right now.",
+      "phrase": "Planes nearby",
+      "do": [
+        {
+          "refresh": "sky"
+        },
+        {
+          "go": "nearby"
+        }
+      ]
+    },
+    "refresh": {
+      "description": "Fetch the latest flight positions.",
+      "do": [
+        {
+          "refresh": "sky"
+        }
+      ]
+    },
+    "set_location": {
+      "description": "Watch the sky at a specific latitude/longitude instead of your IP-based location.",
+      "phrase": "Watch sky at {lat}, {lon}",
+      "inputs": {
+        "lat": {
+          "type": "number",
+          "description": "Latitude in degrees"
+        },
+        "lon": {
+          "type": "number",
+          "description": "Longitude in degrees"
+        }
+      },
+      "do": [
+        {
+          "set": {
+            "new_lat": "{{input.lat}}",
+            "new_lon": "{{input.lon}}",
+            "new_radius": ""
+          }
+        },
+        {
+          "run": "set_location.sh"
+        },
+        {
+          "refresh": "sky"
+        },
+        {
+          "go": "nearby"
+        }
+      ]
+    },
+    "use_my_location": {
+      "description": "Go back to guessing your location from your IP address.",
+      "phrase": "Planes: use my location",
+      "do": [
+        {
+          "set": {
+            "new_lat": "",
+            "new_lon": "",
+            "new_radius": ""
+          }
+        },
+        {
+          "run": "set_location.sh"
+        },
+        {
+          "refresh": "sky"
+        },
+        {
+          "go": "nearby"
+        }
+      ]
+    },
+    "set_radius": {
+      "description": "Set how close (in km) a plane must be to count as overhead and pop up.",
+      "phrase": "Ping for planes within {km} km",
+      "inputs": {
+        "km": {
+          "type": "number",
+          "description": "Radius in kilometres"
+        }
+      },
+      "do": [
+        {
+          "set": {
+            "new_lat": "",
+            "new_lon": "",
+            "new_radius": "{{input.km}}"
+          }
+        },
+        {
+          "run": "set_location.sh"
+        },
+        {
+          "refresh": "sky"
+        },
+        {
+          "go": "nearby"
+        }
+      ]
+    }
+  },
+  "preview": {
+    "states": [
+      "nearby",
+      "overhead"
+    ],
+    "data": {
+      "sky": {
+        "place": "Berlin",
+        "radius_km": 4,
+        "count": 3,
+        "overhead": true,
+        "summary": "3 planes within 46 km",
+        "plane": {
+          "callsign": "EWG8KM",
+          "type": "A320",
+          "reg": "D-AEWM",
+          "alt": "6,850 ft",
+          "speed": "238 kt",
+          "dist": "1.8 km NW",
+          "when": "Overhead in ~40 s",
+          "url": "https://www.flightradar24.com/EWG8KM",
+          "from": "FRA",
+          "from_city": "Frankfurt",
+          "to": "BER",
+          "to_city": "Berlin",
+          "airline": "Eurowings",
+          "route": "FRA → BER",
+          "progress": 0.92,
+          "heading": "Heading E",
+          "trip": "402 km flown · 34 km to go",
+          "desc": "Eurowings A320 D-AEWM"
+        },
+        "nearby": [
+          {
+            "callsign": "EWG8KM",
+            "type": "A320",
+            "alt": "6,850 ft",
+            "speed": "238 kt",
+            "dist": "1.8 km NW",
+            "when": "Overhead in ~40 s",
+            "url": "https://www.flightradar24.com/EWG8KM",
+            "route": "FRA → BER",
+            "airline": "Eurowings",
+            "desc": "Eurowings A320 D-AEWM"
+          },
+          {
+            "callsign": "RYR4TB",
+            "type": "B38M",
+            "alt": "12,300 ft",
+            "speed": "301 kt",
+            "dist": "14.2 km S",
+            "url": "https://www.flightradar24.com/RYR4TB",
+            "route": "BER → STN",
+            "airline": "Ryanair",
+            "desc": "Ryanair B38M"
+          },
+          {
+            "callsign": "KLM73D",
+            "type": "B738",
+            "alt": "39,000 ft",
+            "speed": "460 kt",
+            "dist": "38.5 km E",
+            "url": "https://www.flightradar24.com/KLM73D",
+            "route": "Flying east",
+            "desc": "B738"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "id": "uber-eats-order",
+  "name": "Uber Eats Order",
+  "description": "Shows when your Uber Eats delivery arrives, read from the Uber Eats order-tracking tab in Chrome or Safari.",
+  "author": "joshuaKnauber",
+  "version": "1.0.0",
+  "icon": "icon.png",
+  "show_when": {
+    "ubereats.active": true
+  },
+  "anytime": true,
+  "watch": [
+    {
+      "script": "order.sh",
+      "every": 30,
+      "on": [
+        "app"
+      ],
+      "as": "ubereats"
+    }
+  ],
+  "initial": "tracking",
+  "states": {
+    "tracking": {
+      "compact": {
+        "leading": {
+          "image": "logo.svg",
+          "tint": "#06C167"
+        },
+        "trailing": {
+          "text": "{{ubereats.eta | Uber Eats}}"
+        }
+      },
+      "expanded": {
+        "size": "compact",
+        "header": {
+          "tint": "#06C167",
+          "title": "{{ubereats.venue | Uber Eats order}}",
+          "image": "logo.svg"
+        },
+        "blocks": [
+          {
+            "text": "{{ubereats.eta | No active order}}",
+            "style": "title"
+          },
+          {
+            "text": "{{ubereats.status | Open your order's tracking page in Chrome or Safari}}",
+            "style": "body"
+          },
+          {
+            "note": "{{ubereats.detail | }}"
+          },
+          {
+            "row": [
+              {
+                "button": {
+                  "symbol": "arrow.up.right",
+                  "label": "Open tracking",
+                  "style": "plain",
+                  "do": [
+                    {
+                      "open_url": "{{ubereats.url | https://www.ubereats.com/orders}}"
+                    }
+                  ]
+                }
+              },
+              "spacer",
+              {
+                "button": {
+                  "symbol": "arrow.clockwise",
+                  "label": "Refresh",
+                  "style": "plain",
+                  "do": [
+                    {
+                      "refresh": "ubereats"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "commands": {
+    "show": {
+      "description": "Show when the current Uber Eats order arrives.",
+      "phrase": "Uber Eats order",
+      "do": [
+        {
+          "refresh": "ubereats"
+        },
+        {
+          "go": "tracking"
+        }
+      ]
+    },
+    "refresh": {
+      "description": "Re-read the Uber Eats tracking page now.",
+      "phrase": "Refresh Uber Eats order",
+      "do": [
+        {
+          "refresh": "ubereats"
+        }
+      ]
+    },
+    "open": {
+      "description": "Open the Uber Eats order-tracking page.",
+      "phrase": "Open Uber Eats tracking",
+      "do": [
+        {
+          "open_url": "{{ubereats.url | https://www.ubereats.com/orders}}"
+        }
+      ]
+    }
+  },
+  "preview": {
+    "states": [
+      "tracking"
+    ],
+    "data": {
+      "ubereats": {
+        "active": true,
+        "venue": "Sushi Corner",
+        "status": "On the way",
+        "eta": "8–13 min",
+        "minutes": 8,
+        "detail": "Arrives around 19:45",
+        "url": "https://www.ubereats.com/orders"
+      }
+    }
+  }
+}
