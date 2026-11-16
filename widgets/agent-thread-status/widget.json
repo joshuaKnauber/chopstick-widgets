@@ -1,0 +1,195 @@
+{
+  "id": "agent-thread-status",
+  "name": "T3 Code Threads",
+  "description": "Shows which T3 Code agent threads are still working while you're in another app, and pops up when one finishes.",
+  "author": "joshuaKnauber",
+  "version": "1.0.0",
+  "icon": "icon.png",
+  "show_when": {
+    "t3threads.show": true
+  },
+  "watch": [
+    {
+      "script": "threads.sh",
+      "every": 5,
+      "on": [
+        "app"
+      ],
+      "as": "t3threads"
+    }
+  ],
+  "triggers": [
+    {
+      "when": {
+        "t3threads.just_finished": true
+      },
+      "open": "finished"
+    }
+  ],
+  "initial": "working",
+  "states": {
+    "working": {
+      "compact": {
+        "leading": {
+          "symbol": "sparkles",
+          "tint": "orange"
+        },
+        "trailing": {
+          "text": "Working · {{t3threads.count | 0}}"
+        }
+      },
+      "expanded": {
+        "size": "regular",
+        "header": {
+          "symbol": "sparkles",
+          "tint": "orange",
+          "title": "T3 Code threads"
+        },
+        "blocks": [
+          {
+            "list": {
+              "from": "t3threads.working",
+              "limit": 6,
+              "title": "{{item.title}}",
+              "subtitle": "{{item.subtitle}}",
+              "symbol": "{{item.symbol}}",
+              "do": [
+                {
+                  "open_url": "{{item.url}}"
+                }
+              ]
+            }
+          },
+          {
+            "note": "{{t3threads.hint | No T3 Code threads working.}}"
+          }
+        ]
+      }
+    },
+    "finished": {
+      "task": true,
+      "open": true,
+      "dismiss_after": 6,
+      "compact": {
+        "leading": {
+          "symbol": "{{t3threads.finished.symbol | checkmark.circle.fill}}",
+          "tint": "{{t3threads.finished.tint | green}}"
+        },
+        "trailing": {
+          "text": "{{t3threads.finished.label | Finished}}"
+        }
+      },
+      "expanded": {
+        "size": "compact",
+        "header": {
+          "symbol": "{{t3threads.finished.symbol | checkmark.circle.fill}}",
+          "tint": "{{t3threads.finished.tint | green}}",
+          "title": "{{t3threads.finished.label | Finished}}"
+        },
+        "blocks": [
+          {
+            "text": "{{t3threads.finished.title}}",
+            "style": "title",
+            "lines": 2
+          },
+          {
+            "note": "{{t3threads.finished.project}}"
+          },
+          {
+            "row": [
+              {
+                "button": {
+                  "label": "Open thread",
+                  "symbol": "arrow.up.forward.app",
+                  "style": "filled",
+                  "do": [
+                    {
+                      "open_url": "{{t3threads.finished.url}}"
+                    },
+                    "dismiss"
+                  ]
+                }
+              },
+              "spacer"
+            ]
+          }
+        ]
+      },
+      "keys": [
+        {
+          "key": "return",
+          "label": "Open",
+          "do": [
+            {
+              "open_url": "{{t3threads.finished.url}}"
+            },
+            "dismiss"
+          ]
+        }
+      ]
+    }
+  },
+  "commands": {
+    "show": {
+      "description": "Show the T3 Code threads that are still working.",
+      "phrase": "T3 threads working",
+      "do": [
+        {
+          "refresh": "t3threads"
+        },
+        {
+          "go": "working"
+        }
+      ]
+    },
+    "open_latest": {
+      "description": "Open the T3 Code thread that has been working the longest.",
+      "phrase": "Open working T3 thread",
+      "do": [
+        {
+          "open_url": "{{t3threads.first.url}}"
+        },
+        "dismiss"
+      ]
+    }
+  },
+  "preview": {
+    "states": [
+      "working",
+      "finished"
+    ],
+    "data": {
+      "t3threads": {
+        "count": 2,
+        "show": true,
+        "just_finished": false,
+        "working": [
+          {
+            "title": "Add dark mode to settings page",
+            "subtitle": "Working · acme-web · 4m",
+            "symbol": "sparkles",
+            "url": "t3code://threads/env/1"
+          },
+          {
+            "title": "Fix flaky checkout tests",
+            "subtitle": "Needs you · storefront-api · 12m",
+            "symbol": "hand.raised.fill",
+            "url": "t3code://threads/env/2"
+          }
+        ],
+        "first": {
+          "url": "t3code://threads/env/1"
+        },
+        "finished": {
+          "title": "Fix flaky checkout tests",
+          "project": "storefront-api",
+          "url": "t3code://threads/env/2",
+          "label": "Finished",
+          "symbol": "checkmark.circle.fill",
+          "tint": "green"
+        },
+        "hint": "Click a thread to jump to it."
+      }
+    }
+  }
+}
