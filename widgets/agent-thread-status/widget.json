@@ -1,7 +1,7 @@
 {
   "id": "agent-thread-status",
   "name": "T3 Code Threads",
-  "description": "Shows which T3 Code agent threads are still working while you're in another app, and pops up when one finishes.",
+  "description": "Shows which T3 Code threads are still working while you're in another app, pops up when one finishes, and jumps to a thread on click.",
   "author": "joshuaKnauber",
   "version": "1.0.0",
   "icon": "icon.png",
@@ -11,7 +11,7 @@
   "watch": [
     {
       "script": "threads.sh",
-      "every": 5,
+      "every": 3,
       "on": [
         "app"
       ],
@@ -69,7 +69,7 @@
     "finished": {
       "task": true,
       "open": true,
-      "dismiss_after": 6,
+      "dismiss_after": 1.5,
       "compact": {
         "leading": {
           "symbol": "{{t3threads.finished.symbol | checkmark.circle.fill}}",
@@ -172,7 +172,7 @@
           },
           {
             "title": "Fix flaky checkout tests",
-            "subtitle": "Needs you · storefront-api · 12m",
+            "subtitle": "Needs you · acme-api · 12m",
             "symbol": "hand.raised.fill",
             "url": "t3code://threads/env/2"
           }
@@ -182,7 +182,7 @@
         },
         "finished": {
           "title": "Fix flaky checkout tests",
-          "project": "storefront-api",
+          "project": "acme-api",
           "url": "t3code://threads/env/2",
           "label": "Finished",
           "symbol": "checkmark.circle.fill",

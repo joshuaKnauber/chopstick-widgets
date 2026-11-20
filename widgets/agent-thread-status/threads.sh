@@ -3,11 +3,13 @@
 DIR="$HOME/.t3/userdata"
 DB="$DIR/statev2.sqlite"
 if [ ! -f "$DB" ]; then echo '{"count":0,"working":[],"show":false,"just_finished":false}'; exit 0; fi
+# python3 ships with the Command Line Tools; without them /usr/bin/python3 would prompt to install.
+xcode-select -p >/dev/null 2>&1 || { echo '{"count":0,"working":[],"show":false,"just_finished":false}'; exit 0; }
 ENV_ID=$(cat "$DIR/environment-id" 2>/dev/null)
 IN_T3=false
 case "$CHOPSTICK_APP" in com.t3tools.t3code*) IN_T3=true ;; esac
 
-sqlite3 -readonly -json "file:$DB?mode=ro" "
+sqlite3 -readonly -json -cmd ".timeout 1000" "file:$DB?mode=ro" "
 WITH t AS (
   SELECT t.thread_id, t.title, p.title AS project
   FROM orchestration_v2_projection_threads t
@@ -25,7 +27,7 @@ active AS (
 done AS (
   SELECT t.thread_id, t.title, t.project, r.status, r.completed_at
   FROM orchestration_v2_projection_runs r JOIN t USING(thread_id)
-  WHERE r.completed_at > strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 seconds')
+  WHERE r.completed_at > strftime('%Y-%m-%dT%H:%M:%fZ','now','-20 seconds')
     AND r.status IN ('completed','failed','interrupted')
     AND r.thread_id NOT IN (SELECT thread_id FROM active)
   ORDER BY r.completed_at DESC LIMIT 1
